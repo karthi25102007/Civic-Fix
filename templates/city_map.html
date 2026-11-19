@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}City Issue Map — CivicFix{% endblock %}
+{% block body_class %}public-page{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+{% endblock %}
+
+{% block content %}
+<main class="container" style="padding-top:34px;padding-bottom:48px">
+    <div class="page-heading">
+        <span class="eyebrow">Transparent city monitoring</span>
+        <h1>City Issue Map</h1>
+        <p>Explore {{ complaints|length }} publicly shared civic reports across the city. Filter by category, status or priority to see what is happening near you.</p>
+    </div>
+
+    <div class="card">
+        <div class="map-filters">
+            <select class="form-select" id="mapCategory" aria-label="Filter by category">
+                <option value="">All categories</option>
+                {% for category in categories %}<option value="{{ category.id }}">{{ category.name }}</option>{% endfor %}
+            </select>
+            <select class="form-select" id="mapStatus" aria-label="Filter by status">
+                <option value="">All statuses</option>
+                {% for option in ['Submitted','Under Review','Verified','Assigned','In Progress','Resolved','Reopened'] %}<option value="{{ option }}">{{ option }}</option>{% endfor %}
+            </select>
+            <select class="form-select" id="mapPriority" aria-label="Filter by priority">
+                <option value="">All priorities</option>
+                {% for option in ['Low','Medium','High','Urgent'] %}<option value="{{ option }}">{{ option }}</option>{% endfor %}
+            </select>
+            <select class="form-select" id="mapColorBy" aria-label="Marker colour mode">
+                <option value="status">Colour by status</option>
+                <option value="priority">Colour by priority</option>
+            </select>
+            <a class="btn btn-primary" href="/report"><i class="bi bi-plus-lg"></i> Report an Issue</a>
+        </div>
+        <div id="cityMap" class="map-container"></div>
+        <div class="card-body d-flex justify-between align-center flex-wrap gap-2">
+            <div class="d-flex gap-2 flex-wrap">
+                <span class="badge badge-submitted">Submitted</span>
+                <span class="badge badge-in-progress">In progress</span>
+                <span class="badge badge-resolved">Resolved</span>
+                <span class="badge badge-urgent">Urgent</span>
+            </div>
+            <span class="text-sm text-muted">Markers show public reports only · click a marker for details</span>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+<script>
+(function () {
+    'use strict';
+    var complaints = {{ complaints|tojson }};
+    function wire() {
+        if (typeof window.initCityMap !== 'function' || !document.getElementById('cityMap')) return;
+        window.initCityMap(complaints);
+        ['mapCategory', 'mapStatus', 'mapPriority'].forEach(function (id) {
+            var element = document.getElementById(id);
+            if (element) element.addEventListener('change', function () {
+                if (window.civicfixCityMap) window.civicfixCityMap.applyFilters();
+            });
+        });
+        var colorBy = document.getElementById('mapColorBy');
+        if (colorBy) colorBy.addEventListener('change', function () {
+            if (window.civicfixCityMap) window.civicfixCityMap.refreshColors();
+        });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire);
+    else wire();
+})();
+</script>
+{% endblock %}

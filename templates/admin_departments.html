@@ -1,0 +1,67 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Departments — CivicFix{% endblock %}
+{% block topbar_kicker %}Administration{% endblock %}
+{% block page_title %}Departments{% endblock %}
+
+{% block dash_content %}
+<div class="dash-grid equal">
+    <div class="card">
+        <div class="card-head"><div><h3>Create department</h3><p>Add a new maintenance department</p></div></div>
+        <div class="card-body">
+            <form method="post" action="/admin/departments">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="stack">
+                    <div><label class="form-label">Department name</label><input class="form-control" name="name" placeholder="e.g. Parks & Recreation" required></div>
+                    <div><label class="form-label">Short code</label><input class="form-control" name="code" placeholder="PARKS" maxlength="30" required></div>
+                    <div><label class="form-label">Description</label><textarea class="form-control" name="description" rows="2" placeholder="What this department handles"></textarea></div>
+                </div>
+                <button class="btn btn-primary btn-block mt-3" type="submit"><i class="bi bi-plus-lg"></i> Create department</button>
+            </form>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-head"><div><h3>Directory</h3><p>{{ departments|length }} departments</p></div></div>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>Name</th><th>Code</th><th>Staff</th><th>Tasks</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    {% for department in departments %}
+                        <tr>
+                            <td><span class="cell-title">{{ department.name }}</span><span class="cell-sub">{{ department.description or '—' }}</span></td>
+                            <td>{{ department.code }}</td>
+                            <td>{{ department.staff_count }}</td>
+                            <td>{{ department.complaint_count }}</td>
+                            <td><span class="badge badge-{{ 'active' if department.is_active else 'inactive' }}">{{ 'Active' if department.is_active else 'Inactive' }}</span></td>
+                            <td class="nowrap">
+                                <a class="btn btn-sm btn-outline" href="/admin/departments/{{ department.id }}/view">View</a>
+                                <button class="btn btn-sm btn-outline" type="button" onclick="civicfixAdmin.openModal('dept-{{ department.id }}')">Edit</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% for department in departments %}
+<div class="modal-backdrop" id="dept-{{ department.id }}">
+    <div class="modal-dialog">
+        <div class="modal-header"><h3>Edit {{ department.name }}</h3><button class="modal-close" type="button" onclick="civicfixAdmin.closeModal('dept-{{ department.id }}')"><i class="bi bi-x-lg"></i></button></div>
+        <form method="post" action="/admin/departments/{{ department.id }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-body">
+                <div><label class="form-label">Name</label><input class="form-control" name="name" value="{{ department.name }}" required></div>
+                <div><label class="form-label">Code</label><input class="form-control" name="code" value="{{ department.code }}" required></div>
+                <div><label class="form-label">Description</label><textarea class="form-control" name="description" rows="2">{{ department.description or '' }}</textarea></div>
+                <label class="form-check"><input type="checkbox" name="is_active" value="1" {% if department.is_active %}checked{% endif %}> Department is active</label>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" type="button" onclick="civicfixAdmin.closeModal('dept-{{ department.id }}')">Cancel</button><button class="btn btn-primary" type="submit">Save changes</button></div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}<script src="{{ url_for('static', filename='js/admin.js') }}"></script>{% endblock %}

@@ -1,0 +1,158 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}{{ complaint.tracking_number }} — CivicFix{% endblock %}
+{% block topbar_kicker %}Complaint details{% endblock %}
+{% block page_title %}{{ complaint.tracking_number }}{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+{% endblock %}
+{% block extra_head %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+{% endblock %}
+
+{% block dash_content %}
+<div class="d-flex justify-between align-center flex-wrap mb-3 gap-2">
+    <div>
+        <a class="text-sm" href="{% if is_admin %}/admin/complaints{% elif is_assigned %}/staff/tasks{% else %}/complaints/my{% endif %}"><i class="bi bi-arrow-left"></i> Back to list</a>
+        <h2 class="mt-2">{{ complaint.title }}</h2>
+        <div class="d-flex gap-2 flex-wrap mt-2">
+            <span class="badge badge-{{ complaint.status|lower|replace(' ', '-') }}">{{ complaint.status }}</span>
+            <span class="badge badge-{{ complaint.priority|lower }}">{{ complaint.priority }} priority</span>
+            <span class="badge badge-neutral"><i class="bi bi-hand-thumbs-up"></i> {{ complaint.support_count }} support{{ '' if complaint.support_count == 1 else 's' }}</span>
+        </div>
+    </div>
+    <div class="quick-actions">
+        {% if not is_owner and not is_admin and not is_assigned %}
+            <form method="post" action="/complaints/{{ complaint.id }}/support">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm {% if supported %}btn-outline{% else %}btn-primary{% endif %}" type="submit">
+                    <i class="bi {% if supported %}bi-hand-thumbs-down{% else %}bi-hand-thumbs-up{% endif %}"></i>
+                    {{ 'Remove support' if supported else 'Support this issue' }}
+                </button>
+            </form>
+        {% endif %}
+        {% if is_owner and complaint.status in ['Resolved', 'Rejected'] %}
+            <form method="post" action="/complaints/{{ complaint.id }}/reopen" onsubmit="return confirm('Reopen this complaint for further review?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-outline" type="submit"><i class="bi bi-arrow-counterclockwise"></i> Reopen</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="stack">
+        <div class="card">
+            <div class="card-head"><div><h3>Complaint information</h3><p>Submitted {{ complaint.created_at.strftime('%d %b %Y at %H:%M') }}</p></div><span class="tracking-id">{{ complaint.tracking_number }}</span></div>
+            <div class="card-body">
+                {% if complaint.status == 'Rejected' and complaint.rejection_reason %}
+                    <div class="duplicate-banner mb-3"><i class="bi bi-exclamation-octagon"></i><div><h4>Rejection reason</h4><p>{{ complaint.rejection_reason }}</p></div></div>
+                {% endif %}
+                <p>{{ complaint.description }}</p>
+                {% if complaint.additional_details %}<p class="text-muted text-sm mt-3"><strong>Additional details:</strong> {{ complaint.additional_details }}</p>{% endif %}
+                <div class="detail-meta mt-4">
+                    <div><span class="meta-label">Category</span><div class="meta-value"><i class="bi {{ complaint.category_icon or 'bi-three-dots' }}"></i> {{ complaint.category_name }}</div></div>
+                    <div><span class="meta-label">Location</span><div class="meta-value">{{ complaint.location_address }}</div></div>
+                    <div><span class="meta-label">Current status</span><div class="meta-value">{{ complaint.status }}</div></div>
+                    <div><span class="meta-label">Priority</span><div class="meta-value">{{ complaint.priority }}</div></div>
+                    <div><span class="meta-label">Department</span><div class="meta-value">{{ complaint.department_name or 'Not assigned' }}</div></div>
+                    <div><span class="meta-label">Assigned staff</span><div class="meta-value">{{ complaint.staff_name or 'Not assigned' }}</div></div>
+                </div>
+                {% if complaint.priority_reason %}
+                    <div class="mt-3" style="background:var(--primary-soft);border:1px solid #dbeafe;border-radius:10px;padding:14px">
+                        <strong class="text-sm">Why this priority was suggested</strong>
+                        <p class="text-xs mt-1">{{ complaint.priority_reason }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if complaint.latitude and complaint.longitude %}
+        <div class="card">
+            <div class="card-head"><div><h3>Location map</h3><p>Reported issue coordinates</p></div></div>
+            <div class="card-body">
+                <div class="map-container" id="detailMap" style="height:280px" data-lat="{{ complaint.latitude }}" data-lng="{{ complaint.longitude }}"></div>
+                <p class="text-xs text-muted mt-2">{{ complaint.latitude }}, {{ complaint.longitude }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if images %}
+        <div class="card">
+            <div class="card-head"><div><h3>Photo evidence</h3><p>Images attached with the complaint</p></div></div>
+            <div class="card-body">
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
+                    {% for image in images %}
+                        <a href="{{ url_for('static', filename=image.file_path) }}" target="_blank" rel="noopener"><img class="detail-image" src="{{ url_for('static', filename=image.file_path) }}" alt="{{ image.original_name }}"></a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if progress_images or resolution_images %}
+        <div class="card">
+            <div class="card-head"><div><h3>Staff evidence</h3><p>Progress and resolution photos</p></div></div>
+            <div class="card-body">
+                {% for image in progress_images + resolution_images %}
+                    <div class="mb-2"><span class="badge badge-neutral">{{ image.image_type|capitalize }}</span><a class="text-sm" href="{{ url_for('static', filename=image.file_path) }}" target="_blank" rel="noopener"> {{ image.original_name }}</a></div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-head"><div><h3>Status timeline</h3><p>Every status change is recorded</p></div></div>
+            <div class="card-body">
+                {% if timeline %}
+                    <ul class="timeline">
+                        {% for event in timeline %}
+                            <li>
+                                <strong>{{ event.to_status or event.update_type|capitalize }}{% if event.from_status %} <span class="text-muted">(from {{ event.from_status }})</span>{% endif %}</strong>
+                                <time>{{ event.created_at.strftime('%d %b %Y, %H:%M') }}{% if event.author %} · {{ event.author }}{% endif %}</time>
+                                {% if event.body %}<p>{{ event.body }}</p>{% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="empty-state"><i class="bi bi-clock-history"></i><h4>No updates yet</h4></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <aside class="stack">
+        <div class="card card-pad">
+            <h3 class="text-sm">Summary</h3>
+            <div class="detail-meta mt-3">
+                <div><span class="meta-label">Tracking ID</span><div class="meta-value tracking-id">{{ complaint.tracking_number }}</div></div>
+                <div><span class="meta-label">Submitted</span><div class="meta-value">{{ complaint.created_at.strftime('%d %b %Y') }}</div></div>
+                <div><span class="meta-label">Support count</span><div class="meta-value">{{ complaint.support_count }}</div></div>
+                <div><span class="meta-label">Resolved</span><div class="meta-value">{{ complaint.resolved_at.strftime('%d %b %Y') if complaint.resolved_at else '—' }}</div></div>
+            </div>
+        </div>
+
+        {% if can_manage %}
+        <div class="card card-pad">
+            <h3 class="text-sm">Internal notes</h3>
+            {% for note in admin_notes %}
+                <div class="mt-2 text-sm"><strong>{{ note.full_name or 'Staff' }}</strong> <span class="text-muted text-xs">{{ note.created_at.strftime('%d %b %Y') }}</span><p class="text-xs mt-1">{{ note.body }}</p></div>
+            {% else %}
+                <p class="text-muted text-sm mt-2">No internal notes.</p>
+            {% endfor %}
+            <div class="mt-3"><a class="btn btn-sm btn-outline" href="{% if is_admin %}/admin/complaints/{{ complaint.id }}{% else %}/staff/tasks{% endif %}">Manage complaint</a></div>
+        </div>
+        {% endif %}
+
+        <div class="card card-pad">
+            <h3 class="text-sm">Need help?</h3>
+            <p class="text-muted text-sm mt-2">Use the tracking number when contacting the civic help desk about this report.</p>
+        </div>
+    </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+{% endblock %}

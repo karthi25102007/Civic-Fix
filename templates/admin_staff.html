@@ -1,0 +1,64 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Staff Management — CivicFix{% endblock %}
+{% block topbar_kicker %}Administration{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+
+{% block dash_content %}
+<div class="dash-grid equal">
+    <div class="card">
+        <div class="card-head"><div><h3>Create staff account</h3><p>Staff can manage complaints assigned to them</p></div></div>
+        <div class="card-body">
+            <form method="post" action="/admin/staff">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="stack">
+                    <div><label class="form-label">Full name</label><input class="form-control" name="full_name" required></div>
+                    <div><label class="form-label">Email</label><input class="form-control" type="email" name="email" required></div>
+                    <div><label class="form-label">Phone</label><input class="form-control" name="phone"></div>
+                    <div><label class="form-label">Department</label><select class="form-select" name="department_id" required><option value="">Choose department</option>{% for department in departments %}<option value="{{ department.id }}">{{ department.name }}</option>{% endfor %}</select></div>
+                    <div><label class="form-label">Temporary password</label><input class="form-control" type="password" name="password" minlength="8" required><p class="form-text">Use at least 8 characters with a letter and a number.</p></div>
+                </div>
+                <button class="btn btn-primary btn-block mt-3" type="submit"><i class="bi bi-person-plus"></i> Create staff account</button>
+            </form>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-head"><div><h3>Staff accounts</h3><p>{{ staff|length }} accounts</p></div></div>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>Name</th><th>Department</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    {% for person in staff %}
+                        <tr>
+                            <td><span class="cell-title">{{ person.full_name }}</span><span class="cell-sub">{{ person.email }}</span></td>
+                            <td>{{ person.department_name or '—' }}</td>
+                            <td><span class="badge badge-{{ 'active' if person.is_active else 'inactive' }}">{{ 'Active' if person.is_active else 'Inactive' }}</span></td>
+                            <td class="nowrap"><a class="btn btn-sm btn-outline" href="/admin/staff/{{ person.id }}/tasks">Tasks</a><button class="btn btn-sm btn-outline" type="button" onclick="civicfixAdmin.openModal('staff-{{ person.id }}')">Edit</button></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% for person in staff %}
+<div class="modal-backdrop" id="staff-{{ person.id }}">
+    <div class="modal-dialog">
+        <div class="modal-header"><h3>Edit {{ person.full_name }}</h3><button class="modal-close" type="button" onclick="civicfixAdmin.closeModal('staff-{{ person.id }}')"><i class="bi bi-x-lg"></i></button></div>
+        <form method="post" action="/admin/staff/{{ person.id }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-body">
+                <div><label class="form-label">Full name</label><input class="form-control" name="full_name" value="{{ person.full_name }}"></div>
+                <div><label class="form-label">Phone</label><input class="form-control" name="phone" value="{{ person.phone or '' }}"></div>
+                <div><label class="form-label">Department</label><select class="form-select" name="department_id">{% for department in departments %}<option value="{{ department.id }}" {% if department.id == person.department_id %}selected{% endif %}>{{ department.name }}</option>{% endfor %}</select></div>
+                <label class="form-check"><input type="checkbox" name="is_active" value="1" {% if person.is_active %}checked{% endif %}> Account active</label>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" type="button" onclick="civicfixAdmin.closeModal('staff-{{ person.id }}')">Cancel</button><button class="btn btn-primary" type="submit">Save changes</button></div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}<script src="{{ url_for('static', filename='js/admin.js') }}"></script>{% endblock %}

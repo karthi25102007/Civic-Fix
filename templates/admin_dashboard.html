@@ -1,0 +1,73 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Overview — CivicFix{% endblock %}
+{% block topbar_kicker %}Administrator workspace{% endblock %}
+{% block page_title %}Overview{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
+{% endblock %}
+
+{% block dash_content %}
+<div class="dash-stats">
+    <div class="dash-stat"><div class="dash-stat-top"><span>Total complaints</span><i class="bi bi-clipboard-data"></i></div><strong>{{ stats.total or 0 }}</strong><small>All submitted reports</small></div>
+    <div class="dash-stat orange"><div class="dash-stat-top"><span>Pending review</span><i class="bi bi-hourglass-split"></i></div><strong>{{ stats.pending_review or 0 }}</strong><small>Awaiting verification</small></div>
+    <div class="dash-stat cyan"><div class="dash-stat-top"><span>In progress</span><i class="bi bi-tools"></i></div><strong>{{ stats.in_progress or 0 }}</strong><small>Active field work</small></div>
+    <div class="dash-stat green"><div class="dash-stat-top"><span>Resolved</span><i class="bi bi-check2-circle"></i></div><strong>{{ stats.resolved or 0 }}</strong><small>Closed successfully</small></div>
+    <div class="dash-stat red"><div class="dash-stat-top"><span>Urgent issues</span><i class="bi bi-exclamation-octagon"></i></div><strong>{{ stats.urgent or 0 }}</strong><small>Require attention</small></div>
+    <div class="dash-stat"><div class="dash-stat-top"><span>Resolution rate</span><i class="bi bi-graph-up-arrow"></i></div><strong>{{ stats.resolution_rate or 0 }}%</strong><small>Of all complaints</small></div>
+</div>
+
+<div class="dash-grid equal">
+    <div class="card"><div class="card-head"><div><h3>Complaints by category</h3><p>Volume across issue types</p></div></div><div class="card-body"><div class="chart-box"><canvas id="adminCategoryChart"></canvas></div></div></div>
+    <div class="card"><div class="card-head"><div><h3>Complaints by status</h3><p>Current workflow distribution</p></div></div><div class="card-body"><div class="chart-box"><canvas id="adminStatusChart"></canvas></div></div></div>
+</div>
+
+<div class="dash-grid equal">
+    <div class="card"><div class="card-head"><div><h3>Monthly complaint trends</h3><p>Last six months</p></div></div><div class="card-body"><div class="chart-box"><canvas id="adminTrendChart"></canvas></div></div></div>
+    <div class="card"><div class="card-head"><div><h3>Department performance</h3><p>Resolved complaints by department</p></div></div><div class="card-body"><div class="chart-box"><canvas id="adminDeptChart"></canvas></div></div></div>
+</div>
+
+<div class="card">
+    <div class="card-head"><div><h3>Recent complaints</h3><p>Latest reports submitted by citizens</p></div><a class="btn btn-sm btn-outline" href="/admin/complaints">Manage all complaints</a></div>
+    {% if recent %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Location</th><th>Priority</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
+                <tbody>
+                    {% for item in recent %}
+                        <tr>
+                            <td class="nowrap"><span class="tracking-id">{{ item.tracking_number }}</span></td>
+                            <td><span class="cell-title">{{ item.title }}</span></td>
+                            <td>{{ item.category_name }}</td>
+                            <td>{{ item.location_address }}</td>
+                            <td><span class="badge badge-{{ item.priority|lower }}">{{ item.priority }}</span></td>
+                            <td><span class="badge badge-{{ item.status|lower|replace(' ', '-') }}">{{ item.status }}</span></td>
+                            <td class="nowrap">{{ item.created_at.strftime('%d %b %Y') }}</td>
+                            <td><a class="btn btn-sm btn-outline" href="/admin/complaints/{{ item.id }}">Review</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state"><i class="bi bi-inbox"></i><h4>No complaints yet</h4><p>New reports will appear here as citizens submit them.</p></div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.civicfixCharts = {
+    categoryLabels: {{ category_labels|tojson }},
+    categoryValues: {{ category_values|tojson }},
+    statusLabels: {{ status_labels|tojson }},
+    statusValues: {{ status_values|tojson }},
+    monthLabels: {{ month_labels|tojson }},
+    monthValues: {{ month_values|tojson }},
+    deptLabels: {{ dept_labels|tojson }},
+    deptValues: {{ dept_values|tojson }}
+};
+</script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Dashboard — CivicFix{% endblock %}
+{% block topbar_kicker %}Citizen workspace{% endblock %}
+{% block page_title %}My Dashboard{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
+{% endblock %}
+
+{% block dash_content %}
+<div class="welcome-strip">
+    <div>
+        <h2>Good to see you, {{ session_user.full_name.split()[0] }}.</h2>
+        <p class="text-muted text-sm mt-1">Here is what is happening with your reports in the community.</p>
+    </div>
+    <a class="btn btn-primary" href="/report"><i class="bi bi-plus-lg"></i> Quick Report</a>
+</div>
+
+<div class="dash-stats">
+    <div class="dash-stat"><div class="dash-stat-top"><span>Total submitted</span><i class="bi bi-clipboard2-check"></i></div><strong>{{ stats.total or 0 }}</strong><small>All time complaints</small></div>
+    <div class="dash-stat orange"><div class="dash-stat-top"><span>Pending</span><i class="bi bi-hourglass-split"></i></div><strong>{{ stats.pending or 0 }}</strong><small>Awaiting action</small></div>
+    <div class="dash-stat cyan"><div class="dash-stat-top"><span>In progress</span><i class="bi bi-tools"></i></div><strong>{{ stats.in_progress or 0 }}</strong><small>Work underway</small></div>
+    <div class="dash-stat green"><div class="dash-stat-top"><span>Resolved</span><i class="bi bi-check2-circle"></i></div><strong>{{ stats.resolved or 0 }}</strong><small>Successfully closed</small></div>
+</div>
+
+<div class="dash-grid">
+    <div class="card">
+        <div class="card-head"><div><h3>Recent complaints</h3><p>Your latest reports and their current status</p></div><a class="btn btn-sm btn-outline" href="/complaints/my">View all</a></div>
+        {% if recent %}
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Status</th><th>Date</th><th></th></tr></thead>
+                    <tbody>
+                        {% for item in recent %}
+                            <tr>
+                                <td class="nowrap"><span class="tracking-id">{{ item.tracking_number }}</span></td>
+                                <td><span class="cell-title">{{ item.title }}</span><span class="cell-sub">{{ item.location_address }}</span></td>
+                                <td>{{ item.category_name }}</td>
+                                <td><span class="badge badge-{{ item.status|lower|replace(' ', '-') }}">{{ item.status }}</span></td>
+                                <td class="nowrap">{{ item.created_at.strftime('%d %b %Y') }}</td>
+                                <td><a class="btn btn-sm btn-outline" href="/complaints/{{ item.id }}">View</a></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state"><i class="bi bi-clipboard-plus"></i><h4>No complaints yet</h4><p>Report your first civic issue to get started.</p><a class="btn btn-primary btn-sm mt-2" href="/report">Report an Issue</a></div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-head"><div><h3>Complaint status</h3><p>Distribution across all statuses</p></div></div>
+        <div class="card-body"><div class="chart-box"><canvas id="citizenStatusChart"></canvas></div></div>
+    </div>
+</div>
+
+<div class="dash-grid">
+    <div class="card">
+        <div class="card-head"><div><h3>Category breakdown</h3><p>Where you have reported issues</p></div></div>
+        <div class="card-body"><div class="chart-box"><canvas id="citizenCategoryChart"></canvas></div></div>
+    </div>
+    <div class="card">
+        <div class="card-head"><div><h3>Recent notifications</h3><p>{{ unread }} unread</p></div><a class="btn btn-sm btn-outline" href="/notifications">All</a></div>
+        <div>
+            {% for item in notifications %}
+                <div class="notif-item {% if not item.is_read %}unread{% endif %}">
+                    <i class="bi bi-bell"></i>
+                    <div><strong>{{ item.title }}</strong><p>{{ item.message }}</p><time>{{ item.created_at.strftime('%d %b %Y, %H:%M') }}</time></div>
+                </div>
+            {% else %}
+                <div class="empty-state"><i class="bi bi-bell-slash"></i><h4>No notifications yet</h4><p>Updates about your complaints will appear here.</p></div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head"><div><h3>Complaint activity</h3><p>Latest public updates on your reports</p></div></div>
+    <div class="card-body">
+        {% if activity %}
+            <ul class="timeline">
+                {% for item in activity %}
+                    <li>
+                        <strong>{{ item.title }} <span class="tracking-id">{{ item.tracking_number }}</span></strong>
+                        <time>{{ item.created_at.strftime('%d %b %Y, %H:%M') }}</time>
+                        <p>{{ item.body or ('Status changed to ' ~ item.to_status if item.to_status else 'Complaint updated') }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="empty-state"><i class="bi bi-clock-history"></i><h4>No activity yet</h4><p>Status changes will be recorded here automatically.</p></div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.civicfixCharts = {
+    statusLabels: {{ status_labels|tojson }},
+    statusValues: {{ status_values|tojson }},
+    categoryLabels: {{ category_labels|tojson }},
+    categoryValues: {{ category_values|tojson }}
+};
+</script>
+<script src="{{ url_for('static', filename='js/citizen_dashboard.js') }}"></script>
+{% endblock %}

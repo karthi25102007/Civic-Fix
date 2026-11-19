@@ -1,0 +1,36 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Settings — CivicFix{% endblock %}
+{% block topbar_kicker %}Administration{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% block dash_content %}
+<div class="settings-grid">
+    <div class="card card-pad">
+        <h3>System status</h3>
+        <p class="text-muted text-sm mt-1">Live information from the running application.</p>
+        <div class="detail-meta mt-4">
+            <div><span class="meta-label">Database</span><div class="meta-value"><span class="badge badge-{{ 'active' if db_status == 'Connected' else 'inactive' }}">{{ db_status }}</span></div></div>
+            <div><span class="meta-label">Image upload limit</span><div class="meta-value">{{ upload_limit_mb }} MB per image</div></div>
+            <div><span class="meta-label">Users</span><div class="meta-value">{{ counts.users }}</div></div>
+            <div><span class="meta-label">Complaints</span><div class="meta-value">{{ counts.complaints }}</div></div>
+            <div><span class="meta-label">Departments</span><div class="meta-value">{{ counts.departments }}</div></div>
+        </div>
+    </div>
+    <div class="card card-pad">
+        <h3>Manage platform data</h3>
+        <p class="text-muted text-sm mt-1">Use these tools to keep complaint routing accurate.</p>
+        <div class="quick-actions mt-4">
+            <a class="btn btn-outline" href="/admin/departments"><i class="bi bi-building"></i> Departments</a>
+            <a class="btn btn-outline" href="/admin/staff"><i class="bi bi-people"></i> Staff accounts</a>
+            <a class="btn btn-outline" href="/admin/citizens"><i class="bi bi-person-badge"></i> Citizens</a>
+            <a class="btn btn-outline" href="/admin/complaints"><i class="bi bi-clipboard-data"></i> Complaints</a>
+            <a class="btn btn-outline" href="/admin/audit"><i class="bi bi-clock-history"></i> Audit trail</a>
+        </div>
+        <div class="mt-4" style="background:var(--primary-soft);border-radius:10px;padding:14px">
+            <strong class="text-sm">Security note</strong>
+            <p class="text-xs mt-1">Passwords are hashed with Werkzeug, protected forms use CSRF tokens, and access is controlled by server-side session roles. Configuration secrets are loaded from the local <code>.env</code> file and are never displayed here.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

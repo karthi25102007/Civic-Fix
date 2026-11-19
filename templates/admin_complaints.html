@@ -1,0 +1,66 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}All Complaints — CivicFix{% endblock %}
+{% block topbar_kicker %}Complaint management{% endblock %}
+{% block page_title %}All Complaints{% endblock %}
+
+{% block dash_content %}
+<div class="card">
+    <div class="filter-bar">
+        <form class="d-flex gap-1 flex-wrap" method="get" action="/admin/complaints" style="width:100%">
+            <input class="form-control search-field" type="search" name="q" value="{{ filters.q }}" placeholder="Search ID, title or location">
+            <select class="form-select" name="status"><option value="">All statuses</option>{% for option in ['Submitted','Under Review','Verified','Assigned','In Progress','Resolved','Reopened','Rejected'] %}<option value="{{ option }}" {% if filters.status == option %}selected{% endif %}>{{ option }}</option>{% endfor %}</select>
+            <select class="form-select" name="category"><option value="">All categories</option>{% for category in categories %}<option value="{{ category.id }}" {% if filters.category == category.id %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select>
+            <select class="form-select" name="priority"><option value="">All priorities</option>{% for option in ['Low','Medium','High','Urgent'] %}<option value="{{ option }}" {% if filters.priority == option %}selected{% endif %}>{{ option }}</option>{% endfor %}</select>
+            <input class="form-control" type="date" name="date_from" value="{{ filters.date_from }}" title="From date">
+            <input class="form-control" type="date" name="date_to" value="{{ filters.date_to }}" title="To date">
+            <select class="form-select" name="sort">
+                <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest first</option>
+                <option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest first</option>
+                <option value="priority" {% if filters.sort == 'priority' %}selected{% endif %}>Priority</option>
+                <option value="status" {% if filters.sort == 'status' %}selected{% endif %}>Status</option>
+            </select>
+            <button class="btn btn-primary" type="submit"><i class="bi bi-funnel"></i> Apply</button>
+            <a class="btn btn-outline" href="/admin/complaints">Reset</a>
+        </form>
+    </div>
+
+    <div class="card-head" style="border-bottom:0;padding-bottom:0">
+        <div><h3>{{ total }} complaint{{ '' if total == 1 else 's' }} found</h3><p>Review, assign and update civic reports</p></div>
+    </div>
+
+    {% if complaints %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Location</th><th>Department</th><th>Priority</th><th>Status</th><th>Support</th><th>Submitted</th><th></th></tr></thead>
+                <tbody>
+                    {% for item in complaints %}
+                        <tr>
+                            <td class="nowrap"><span class="tracking-id">{{ item.tracking_number }}</span></td>
+                            <td><span class="cell-title">{{ item.title }}</span></td>
+                            <td>{{ item.category_name }}</td>
+                            <td>{{ item.location_address }}</td>
+                            <td>{{ item.department_name or 'Unassigned' }}</td>
+                            <td><span class="badge badge-{{ item.priority|lower }}">{{ item.priority }}</span></td>
+                            <td><span class="badge badge-{{ item.status|lower|replace(' ', '-') }}">{{ item.status }}</span></td>
+                            <td>{{ item.support_count }}</td>
+                            <td class="nowrap">{{ item.created_at.strftime('%d %b %Y') }}</td>
+                            <td class="nowrap"><a class="btn btn-sm btn-primary" href="/admin/complaints/{{ item.id }}">Manage</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination">
+            <span>Page {{ page }} of {{ pages }}</span>
+            <div class="pagination-links">
+                {% if page > 1 %}<a class="page-link" href="?page={{ page - 1 }}&q={{ filters.q }}&status={{ filters.status }}&category={{ filters.category }}&priority={{ filters.priority }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}&sort={{ filters.sort }}">Previous</a>{% endif %}
+                {% for number in range(1, pages + 1) %}<a class="page-link {% if number == page %}active{% endif %}" href="?page={{ number }}&q={{ filters.q }}&status={{ filters.status }}&category={{ filters.category }}&priority={{ filters.priority }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}&sort={{ filters.sort }}">{{ number }}</a>{% endfor %}
+                {% if page < pages %}<a class="page-link" href="?page={{ page + 1 }}&q={{ filters.q }}&status={{ filters.status }}&category={{ filters.category }}&priority={{ filters.priority }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}&sort={{ filters.sort }}">Next</a>{% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state"><i class="bi bi-search"></i><h4>No complaints match these filters</h4><p>Try widening your search criteria.</p></div>
+    {% endif %}
+</div>
+{% endblock %}

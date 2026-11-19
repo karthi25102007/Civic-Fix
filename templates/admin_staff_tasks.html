@@ -1,0 +1,34 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Tasks — {{ staff.full_name }} — CivicFix{% endblock %}
+{% block topbar_kicker %}Staff workload{% endblock %}
+{% block page_title %}Tasks: {{ staff.full_name }}{% endblock %}
+
+{% block dash_content %}
+<div class="card">
+    <div class="card-head">
+        <div><a class="text-sm" href="/admin/staff"><i class="bi bi-arrow-left"></i> Staff management</a><h3 class="mt-2">Assigned complaints</h3><p>{{ staff.email }} · {{ tasks|length }} recent assignments</p></div>
+    </div>
+    {% if tasks %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    {% for item in tasks %}
+                        <tr>
+                            <td class="nowrap"><span class="tracking-id">{{ item.tracking_number }}</span></td>
+                            <td class="cell-title">{{ item.title }}</td>
+                            <td>{{ item.category_name }}</td>
+                            <td><span class="badge badge-{{ item.priority|lower }}">{{ item.priority }}</span></td>
+                            <td><span class="badge badge-{{ item.status|lower|replace(' ', '-') }}">{{ item.status }}</span></td>
+                            <td><a class="btn btn-sm btn-primary" href="/admin/complaints/{{ item.id }}">Review</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state"><i class="bi bi-list-check"></i><h4>No complaints assigned</h4><p>Assign complaints from the complaint review page.</p></div>
+    {% endif %}
+</div>
+{% endblock %}

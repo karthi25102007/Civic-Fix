@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}CivicFix — Report. Track. Resolve.{% endblock %}
+{% block body_class %}landing-page{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="container hero-grid">
+        <div>
+            <span class="eyebrow"><span class="pulse"></span> Smart civic reporting platform</span>
+            <h1>Make Your City Better, <em>One Report at a Time.</em></h1>
+            <p class="hero-subtitle">CivicFix connects citizens, administrators and maintenance departments on one transparent platform. Report an issue, follow its progress and see real results in your neighbourhood.</p>
+            <div class="hero-actions">
+                <a class="btn btn-primary btn-lg" href="/report"><i class="bi bi-plus-circle"></i> Report an Issue</a>
+                <a class="btn btn-outline btn-lg" href="/track"><i class="bi bi-search"></i> Track Complaint</a>
+            </div>
+            <div class="hero-trust">
+                <span><i class="bi bi-check-circle-fill"></i> Free for citizens</span>
+                <span><i class="bi bi-check-circle-fill"></i> Real-time status updates</span>
+                <span><i class="bi bi-check-circle-fill"></i> Location-based reporting</span>
+            </div>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+            <div class="mock-window">
+                <div class="mock-topbar"><i></i><i></i><i></i><span>civicfix.live / city overview</span></div>
+                <div class="mock-body">
+                    <div class="mock-headline"><strong>City issue map</strong><small>Live updates</small></div>
+                    <div class="mock-map">
+                        <span class="mock-pin p1"></span>
+                        <span class="mock-pin p2 cyan"></span>
+                        <span class="mock-pin p3 orange"></span>
+                        <span class="mock-pin p4 green"></span>
+                    </div>
+                    <div class="mock-rows">
+                        <div class="mock-row"><span class="dot"></span><span class="bar"><span></span></span><small>In Progress</small></div>
+                        <div class="mock-row"><span class="dot cyan"></span><span class="bar"><span style="width:80%;background:#06B6D4"></span></span><small>Resolved</small></div>
+                        <div class="mock-row"><span class="dot orange"></span><span class="bar"><span style="width:35%;background:#f97316"></span></span><small>Under Review</small></div>
+                    </div>
+                </div>
+            </div>
+            <div class="float-card">
+                <span class="label">Community reports resolved</span>
+                <strong>{{ stats.resolved }}</strong>
+                <span class="trend"><i class="bi bi-arrow-up-right"></i> Tracking real progress</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="stats-band">
+    <div class="container stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-clipboard2-check"></i></div>
+            <div><strong>{{ stats.total }}</strong><span>Total complaints</span></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-check2-circle"></i></div>
+            <div><strong>{{ stats.resolved }}</strong><span>Resolved complaints</span></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon orange"><i class="bi bi-hourglass-split"></i></div>
+            <div><strong>{{ stats.active }}</strong><span>Active complaints</span></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon cyan"><i class="bi bi-building"></i></div>
+            <div><strong>{{ stats.departments }}</strong><span>Participating departments</span></div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="categories">
+    <div class="container">
+        <div class="section-head">
+            <span class="eyebrow">What you can report</span>
+            <h2>Issues we help resolve</h2>
+            <p>Choose the right category so the right department can respond quickly.</p>
+        </div>
+        <div class="category-grid">
+            {% for category in categories %}
+                <a class="category-card" href="/report?category={{ category.name|urlencode }}">
+                    <i class="bi {{ category.icon or 'bi-three-dots' }}"></i>
+                    <h3>{{ category.name }}</h3>
+                    <p>{{ category.description or 'Report an issue in this category.' }}</p>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="section how-section" id="how-it-works">
+    <div class="container">
+        <div class="section-head">
+            <span class="eyebrow">How it works</span>
+            <h2>From report to resolution in four clear steps</h2>
+        </div>
+        <div class="steps-grid">
+            <div class="step"><div class="step-num">1</div><h3>Report</h3><p>Describe the issue, add a location and attach photo evidence.</p></div>
+            <div class="step"><div class="step-num">2</div><h3>Review</h3><p>Administrators verify the complaint and remove duplicates or spam.</p></div>
+            <div class="step"><div class="step-num">3</div><h3>Assign</h3><p>The right department and staff member take ownership of the task.</p></div>
+            <div class="step"><div class="step-num">4</div><h3>Resolve</h3><p>Follow progress updates and see resolution evidence when work is done.</p></div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="section-head">
+            <span class="eyebrow">Why CivicFix</span>
+            <h2>Built for transparency and faster response</h2>
+        </div>
+        <div class="features-grid">
+            <div class="feature-item"><i class="bi bi-eye"></i><div><h3>Transparent tracking</h3><p>Every status change is recorded in a public timeline.</p></div></div>
+            <div class="feature-item"><i class="bi bi-geo-alt"></i><div><h3>Location-based reporting</h3><p>Pin the exact spot on an interactive city map.</p></div></div>
+            <div class="feature-item"><i class="bi bi-camera"></i><div><h3>Photo evidence</h3><p>Attach images so teams can assess the issue before arrival.</p></div></div>
+            <div class="feature-item"><i class="bi bi-clock-history"></i><div><h3>Progress updates</h3><p>Receive in-app notifications at every important milestone.</p></div></div>
+            <div class="feature-item"><i class="bi bi-people"></i><div><h3>Community support</h3><p>Support nearby issues to show what matters most to residents.</p></div></div>
+            <div class="feature-item"><i class="bi bi-shield-check"></i><div><h3>Role-based security</h3><p>Private details stay visible only to the people involved.</p></div></div>
+        </div>
+    </div>
+</section>
+
+<section class="section recent-section">
+    <div class="container">
+        <div class="section-head d-flex justify-between align-center flex-wrap">
+            <div>
+                <span class="eyebrow">Community activity</span>
+                <h2>Recent public complaints</h2>
+            </div>
+            <a class="btn btn-sm btn-outline" href="/track">Track a complaint <i class="bi bi-arrow-right"></i></a>
+        </div>
+        {% if recent_complaints %}
+            <div class="recent-list">
+                {% for item in recent_complaints %}
+                    <div class="recent-item">
+                        <div>
+                            <strong>{{ item.title }}</strong>
+                            <small><span class="tracking-id">{{ item.tracking_number }}</span> &middot; {{ item.location_address }}</small>
+                        </div>
+                        <div class="cat"><i class="bi {{ item.category_icon or 'bi-three-dots' }}"></i> {{ item.category }}</div>
+                        <div class="when">{{ item.created_at.strftime('%d %b %Y') }}</div>
+                        <div><span class="badge badge-{{ item.status|lower|replace(' ', '-') }}">{{ item.status }}</span></div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card empty-state"><i class="bi bi-inbox"></i><h4>No public complaints yet</h4><p>Be the first to report an issue in your community.</p></div>
+        {% endif %}
+    </div>
+</section>
+
+<section class="container">
+    <div class="cta-band">
+        <div>
+            <h2>Your neighbourhood needs your voice.</h2>
+            <p>Report an issue today and follow it all the way to resolution.</p>
+        </div>
+        <div class="cta-actions">
+            <a class="btn btn-primary btn-lg" href="/report"><i class="bi bi-plus-lg"></i> Report an Issue</a>
+            <a class="btn btn-light btn-lg" href="{{ url_for('auth.register') }}">Create an account</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

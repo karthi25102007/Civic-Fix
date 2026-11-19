@@ -1,0 +1,124 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Review {{ complaint.tracking_number }} — CivicFix{% endblock %}
+{% block topbar_kicker %}Complaint review{% endblock %}
+{% block page_title %}{{ complaint.tracking_number }}{% endblock %}
+
+{% block dash_content %}
+<div class="d-flex justify-between align-center flex-wrap gap-2 mb-3">
+    <div>
+        <a class="text-sm" href="/admin/complaints"><i class="bi bi-arrow-left"></i> All complaints</a>
+        <h2 class="mt-2">{{ complaint.title }}</h2>
+        <div class="d-flex gap-2 flex-wrap mt-2">
+            <span class="badge badge-{{ complaint.status|lower|replace(' ', '-') }}">{{ complaint.status }}</span>
+            <span class="badge badge-{{ complaint.priority|lower }}">{{ complaint.priority }} priority</span>
+            <span class="badge badge-neutral"><i class="bi bi-hand-thumbs-up"></i> {{ complaint.support_count }}</span>
+        </div>
+    </div>
+    <a class="btn btn-outline" href="/complaints/{{ complaint.id }}"><i class="bi bi-eye"></i> Public-facing view</a>
+</div>
+
+<div class="detail-grid">
+    <div class="stack">
+        <div class="card">
+            <div class="card-head"><div><h3>Report details</h3><p>Submitted by {{ complaint.citizen_name }} on {{ complaint.created_at.strftime('%d %b %Y') }}</p></div><span class="tracking-id">{{ complaint.tracking_number }}</span></div>
+            <div class="card-body">
+                <p>{{ complaint.description }}</p>
+                {% if complaint.additional_details %}<p class="text-sm text-muted mt-2"><strong>Additional details:</strong> {{ complaint.additional_details }}</p>{% endif %}
+                <div class="detail-meta mt-4">
+                    <div><span class="meta-label">Category</span><div class="meta-value">{{ complaint.category_name }}</div></div>
+                    <div><span class="meta-label">Location</span><div class="meta-value">{{ complaint.location_address }}</div></div>
+                    <div><span class="meta-label">Coordinates</span><div class="meta-value text-sm">{{ complaint.latitude or '—' }}, {{ complaint.longitude or '—' }}</div></div>
+                    <div><span class="meta-label">Reported priority</span><div class="meta-value">{{ complaint.priority }}</div></div>
+                    <div><span class="meta-label">Department</span><div class="meta-value">{{ complaint.department_name or 'Unassigned' }}</div></div>
+                    <div><span class="meta-label">Staff</span><div class="meta-value">{{ complaint.staff_name or 'Unassigned' }}</div></div>
+                </div>
+                {% if complaint.priority_reason %}
+                    <div class="mt-3" style="background:var(--primary-soft);border:1px solid #dbeafe;border-radius:10px;padding:14px">
+                        <strong class="text-sm">Suggested priority explanation</strong>
+                        <p class="text-xs mt-1">{{ complaint.priority_reason }}</p>
+                    </div>
+                {% endif %}
+                {% if complaint.rejection_reason %}
+                    <div class="duplicate-banner mt-3"><i class="bi bi-exclamation-octagon"></i><div><h4>Rejection reason</h4><p>{{ complaint.rejection_reason }}</p></div></div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if images %}
+        <div class="card">
+            <div class="card-head"><div><h3>Submitted images</h3></div></div>
+            <div class="card-body d-flex gap-2 flex-wrap">
+                {% for image in images %}<a href="{{ url_for('static', filename=image.file_path) }}" target="_blank" rel="noopener"><img class="detail-image" style="width:180px" src="{{ url_for('static', filename=image.file_path) }}" alt="{{ image.original_name }}"></a>{% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-head"><div><h3>Full history</h3><p>Status changes, notes and assignments</p></div></div>
+            <div class="card-body">
+                <ul class="timeline">
+                    {% for event in timeline %}
+                        <li><strong>{{ event.to_status or event.update_type|capitalize }}</strong><time>{{ event.created_at.strftime('%d %b %Y, %H:%M') }} · {{ event.author or 'System' }}</time>{% if event.body %}<p>{{ event.body }}</p>{% endif %}</li>
+                    {% else %}
+                        <li><strong>No history recorded</strong></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <aside class="stack">
+        <div class="card card-pad">
+            <h3 class="text-sm">Update status</h3>
+            <form method="post" action="/admin/complaints/{{ complaint.id }}/status" class="mt-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <select class="form-select" name="status">{% for option in statuses %}<option value="{{ option }}" {% if complaint.status == option %}selected{% endif %}>{{ option }}</option>{% endfor %}</select>
+                <input class="form-control mt-2" name="note" placeholder="Public note (optional)">
+                <button class="btn btn-primary btn-block mt-2" type="submit">Save status</button>
+            </form>
+        </div>
+
+        <div class="card card-pad">
+            <h3 class="text-sm">Assign department &amp; staff</h3>
+            <form method="post" action="/admin/complaints/{{ complaint.id }}/assign" class="mt-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label class="form-label">Department</label>
+                <select class="form-select" name="department_id" id="assignDepartment" required>
+                    <option value="">Choose department</option>
+                    {% for department in departments %}<option value="{{ department.id }}" data-staff="{{ department.id }}">{{ department.name }}</option>{% endfor %}
+                </select>
+                <label class="form-label mt-2">Staff member</label>
+                <select class="form-select" name="staff_id">
+                    <option value="">Unassigned (department queue)</option>
+                    {% for person in staff %}<option value="{{ person.id }}" data-department="{{ person.department_id or '' }}">{{ person.full_name }} {% if person.department_name %}({{ person.department_name }}){% endif %}</option>{% endfor %}
+                </select>
+                <input class="form-control mt-2" name="note" placeholder="Assignment note (optional)">
+                <button class="btn btn-primary btn-block mt-2" type="submit">Assign complaint</button>
+            </form>
+        </div>
+
+        <div class="card card-pad">
+            <h3 class="text-sm">Override priority</h3>
+            <form method="post" action="/admin/complaints/{{ complaint.id }}/priority" class="mt-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <select class="form-select" name="priority">{% for option in priorities %}<option value="{{ option }}" {% if complaint.priority == option %}selected{% endif %}>{{ option }}</option>{% endfor %}</select>
+                <input class="form-control mt-2" name="note" placeholder="Reason for override">
+                <button class="btn btn-outline btn-block mt-2" type="submit">Update priority</button>
+            </form>
+        </div>
+
+        <div class="card card-pad">
+            <h3 class="text-sm">Reject complaint</h3>
+            <p class="text-xs text-muted mt-1">Rejection reasons are shown to the citizen and stored in the audit trail.</p>
+            <form method="post" action="/admin/complaints/{{ complaint.id }}/reject" class="mt-2" onsubmit="return confirm('Reject this complaint?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <textarea class="form-control" name="reason" rows="3" placeholder="Explain why this complaint cannot be processed" minlength="10"></textarea>
+                <button class="btn btn-danger btn-block mt-2" type="submit">Reject</button>
+            </form>
+        </div>
+    </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}<script src="{{ url_for('static', filename='js/admin.js') }}"></script>{% endblock %}

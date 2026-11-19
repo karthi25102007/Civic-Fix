@@ -1,0 +1,40 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Audit Logs — CivicFix{% endblock %}
+{% block topbar_kicker %}Administration{% endblock %}
+{% block page_title %}Audit Logs{% endblock %}
+
+{% block dash_content %}
+<div class="card">
+    <div class="card-head"><div><h3>Administrative activity</h3><p>All changes are recorded for accountability</p></div></div>
+    {% if logs %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>When</th><th>User</th><th>Action</th><th>Entity</th><th>Details</th><th>IP</th></tr></thead>
+                <tbody>
+                    {% for log in logs %}
+                        <tr>
+                            <td class="nowrap">{{ log.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+                            <td>{{ log.actor or 'System' }}</td>
+                            <td><span class="badge badge-neutral">{{ log.action|replace('_', ' ') }}</span></td>
+                            <td>{{ log.entity_type }} #{{ log.entity_id or '—' }}</td>
+                            <td>{{ log.details or '—' }}</td>
+                            <td class="text-xs">{{ log.ip_address or '—' }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination">
+            <span>Page {{ page }} of {{ pages }}</span>
+            <div class="pagination-links">
+                {% if page > 1 %}<a class="page-link" href="?page={{ page - 1 }}">Previous</a>{% endif %}
+                {% for number in range(1, pages + 1) %}<a class="page-link {% if number == page %}active{% endif %}" href="?page={{ number }}">{{ number }}</a>{% endfor %}
+                {% if page < pages %}<a class="page-link" href="?page={{ page + 1 }}">Next</a>{% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state"><i class="bi bi-clock-history"></i><h4>No audit records yet</h4></div>
+    {% endif %}
+</div>
+{% endblock %}

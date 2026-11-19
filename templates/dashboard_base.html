@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block body_class %}dashboard-body{% endblock %}
+{% block navbar %}{% include 'partials/dashboard_sidebar.html' %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="dash-layout">
+    <header class="dash-topbar">
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Open navigation"><i class="bi bi-list"></i></button>
+        <div class="topbar-title">
+            <span class="topbar-kicker">{% block topbar_kicker %}CivicFix Workspace{% endblock %}</span>
+            <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+        </div>
+        <div class="topbar-actions">
+            <a class="btn btn-sm btn-outline topbar-report" href="/report"><i class="bi bi-plus-lg"></i> Report an Issue</a>
+            <a class="topbar-icon" href="/notifications" aria-label="Notifications">
+                <i class="bi bi-bell"></i>
+                <span class="notif-dot" id="notifDot"></span>
+            </a>
+            <div class="topbar-avatar" title="{{ session_user.full_name or session_user.name }}">{{ (session_user.full_name or session_user.name or 'U')[0]|upper }}</div>
+        </div>
+    </header>
+    <main class="dash-content">
+        {% block dash_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}

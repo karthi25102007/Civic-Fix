@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign in — CivicFix{% endblock %}
+{% block body_class %}auth-body{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <aside class="auth-aside">
+        <a class="brand" href="{{ url_for('main.index') }}">
+            <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="" width="36" height="36">
+            <span class="brand-name">Civic<span>Fix</span></span>
+        </a>
+        <h2>Welcome back to a city that listens.</h2>
+        <p>Track your reports, coordinate with departments and see measurable progress in your community.</p>
+        <ul class="auth-feature-list">
+            <li><i class="bi bi-lightning-charge"></i> Fast, focused complaint workflow</li>
+            <li><i class="bi bi-geo-alt"></i> Precise location-based reporting</li>
+            <li><i class="bi bi-bar-chart-line"></i> Real dashboards and analytics</li>
+        </ul>
+        <div class="auth-quote">"Making our communities better through transparent civic reporting."</div>
+    </aside>
+
+    <div class="auth-panel">
+        <div class="auth-card">
+            <h1>Sign in</h1>
+            <p class="subtitle">Enter your credentials to continue to your workspace.</p>
+
+            <form class="auth-form" method="post" action="{{ url_for('auth.login') }}" data-loading>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="next" value="{{ next_url }}">
+                <div>
+                    <label class="form-label" for="email">Email address</label>
+                    <div class="input-with-icon">
+                        <i class="bi bi-envelope"></i>
+                        <input class="form-control" type="email" id="email" name="email" value="{{ email }}" placeholder="you@example.com" autocomplete="email" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label" for="password">Password</label>
+                    <div class="input-with-icon">
+                        <i class="bi bi-lock"></i>
+                        <input class="form-control" type="password" id="password" name="password" placeholder="Your password" autocomplete="current-password" required>
+                        <button type="button" class="password-toggle" data-password-toggle="password" aria-label="Show password"><i class="bi bi-eye"></i></button>
+                    </div>
+                </div>
+                <div class="d-flex justify-between align-center flex-wrap gap-2">
+                    <label class="form-check"><input type="checkbox" name="remember" value="1" {% if remember %}checked{% endif %}> Remember me</label>
+                    <a class="text-sm" href="{{ url_for('auth.forgot_password') }}">Forgot password?</a>
+                </div>
+                <button class="btn btn-primary btn-block btn-lg" type="submit"><i class="bi bi-box-arrow-in-right"></i> Sign in</button>
+            </form>
+
+            <p class="auth-alt">New to CivicFix? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
+            <div class="divider"></div>
+            <p class="text-xs text-muted">Demo access: use the credentials listed in the README to explore citizen, admin and staff workspaces.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

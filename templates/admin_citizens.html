@@ -1,0 +1,40 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Citizens — CivicFix{% endblock %}
+{% block topbar_kicker %}Administration{% endblock %}
+{% block page_title %}Citizens{% endblock %}
+
+{% block dash_content %}
+<div class="card">
+    <div class="filter-bar">
+        <form class="d-flex gap-1 flex-wrap" method="get" action="/admin/citizens" style="width:100%">
+            <input class="form-control search-field" type="search" name="q" value="{{ search }}" placeholder="Search name or email">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
+            <a class="btn btn-outline" href="/admin/citizens">Reset</a>
+        </form>
+    </div>
+    <div class="card-head" style="border-bottom:0;padding-bottom:0"><div><h3>Registered citizens</h3><p>Manage citizen accounts and review their activity</p></div></div>
+    {% if citizens %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Complaints</th><th>Status</th><th>Joined</th><th></th></tr></thead>
+                <tbody>
+                    {% for citizen in citizens %}
+                        <tr>
+                            <td class="cell-title">{{ citizen.full_name }}</td>
+                            <td>{{ citizen.email }}</td>
+                            <td>{{ citizen.phone or '—' }}</td>
+                            <td>{{ citizen.complaint_count }}</td>
+                            <td><span class="badge badge-{{ 'active' if citizen.is_active else 'inactive' }}">{{ 'Active' if citizen.is_active else 'Suspended' }}</span></td>
+                            <td class="nowrap">{{ citizen.created_at.strftime('%d %b %Y') }}</td>
+                            <td><form method="post" action="/admin/citizens/{{ citizen.id }}/toggle" onsubmit="return confirm('Change this account status?');"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline" type="submit">{{ 'Suspend' if citizen.is_active else 'Activate' }}</button></form></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state"><i class="bi bi-people"></i><h4>No citizens found</h4></div>
+    {% endif %}
+</div>
+{% endblock %}

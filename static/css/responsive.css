@@ -1,0 +1,92 @@
+/* Responsive overrides: tablet and mobile */
+
+@media (max-width: 1024px) {
+    .container { width: min(100% - 32px, 1180px); }
+    .nav-links { gap: 16px; }
+    .hero-grid { gap: 30px; }
+    .stats-grid, .category-grid { grid-template-columns: repeat(2, 1fr); }
+    .steps-grid { grid-template-columns: repeat(2, 1fr); gap: 28px 20px; }
+    .step:nth-child(2)::after { display: none; }
+    .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
+    .dash-layout, .dash-main { margin-left: 0; }
+    .dash-sidebar { transform: translateX(-100%); transition: transform .2s ease; box-shadow: var(--shadow-lg); }
+    .dash-sidebar.is-open { transform: translateX(0); }
+    .sidebar-close, .sidebar-toggle { display: block; }
+    .dash-grid, .dash-grid.equal, .report-layout, .detail-grid { grid-template-columns: 1fr; }
+    .cta-band { padding: 36px; }
+}
+
+@media (max-width: 768px) {
+    .site-header { position: relative; }
+    .header-inner { height: 64px; }
+    .nav-toggle { display: block; margin-left: auto; }
+    .nav-links {
+        display: none; position: absolute; left: 0; right: 0; top: 64px;
+        flex-direction: column; align-items: stretch; gap: 0;
+        background: #fff; border-bottom: 1px solid var(--border);
+        padding: 10px 16px 16px; box-shadow: var(--shadow);
+    }
+    .nav-links.is-open { display: flex; }
+    .nav-links a { padding: 11px 4px; border-bottom: 1px solid #f1f5f9; }
+    .header-actions { margin-left: 0; }
+    .hero { padding: 48px 0 40px; }
+    .hero h1 { font-size: 36px; }
+    .hero-visual { padding: 10px 0; }
+    .float-card { right: 0; bottom: 8px; }
+    .section { padding: 48px 0; }
+    .features-grid, .steps-grid, .recent-item { grid-template-columns: 1fr; }
+    .step::after { display: none; }
+    .recent-item { gap: 8px; }
+    .cta-band { flex-direction: column; align-items: flex-start; margin: 40px auto; }
+    .auth-page { grid-template-columns: 1fr; }
+    .auth-aside { display: none; }
+    .form-grid, .coordinate-row, .detail-meta { grid-template-columns: 1fr; }
+    .dash-content { padding: 18px 14px 40px; }
+    .dash-topbar { padding: 0 14px; }
+    .topbar-title h1 { font-size: 17px; }
+    .topbar-report { display: none; }
+    .dash-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .settings-grid { grid-template-columns: 1fr; }
+    .map-container { height: 400px; }
+    .map-filters .form-select, .map-filters .form-control { width: 100%; }
+    .modal-dialog { max-height: calc(100vh - 32px); overflow-y: auto; }
+    .page-heading h1 { font-size: 28px; }
+    .toast-stack { top: 76px; right: 12px; }
+}
+
+@media (max-width: 520px) {
+    .container { width: calc(100% - 28px); }
+    .brand-name { font-size: 18px; }
+    .header-actions .btn-outline { display: none; }
+    .hero h1 { font-size: 31px; }
+    .hero-subtitle { font-size: 15px; }
+    .hero-actions .btn { width: 100%; }
+    .stats-grid, .category-grid, .dash-stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat-card { padding: 14px; gap: 10px; }
+    .stat-icon { width: 36px; height: 36px; font-size: 16px; }
+    .stat-card strong { font-size: 21px; }
+    .category-card, .feature-item { padding: 16px; }
+    .section-head h2 { font-size: 26px; }
+    .dash-topbar { gap: 8px; }
+    .topbar-kicker { display: none; }
+    .topbar-actions { gap: 6px; }
+    .filter-bar .form-control, .filter-bar .form-select { width: 100%; }
+    .filter-bar form, .filter-bar form > * { width: 100%; }
+    .pagination { flex-direction: column; align-items: flex-start; }
+    .data-table { min-width: 720px; }
+    .table-wrap { overflow-x: auto; }
+    .modal-body { padding: 16px; }
+    .footer-grid { grid-template-columns: 1fr; }
+    .footer-bottom { flex-direction: column; gap: 6px; }
+    .cta-band { padding: 26px 20px; }
+    .cta-band h2 { font-size: 24px; }
+    .form-card { padding: 18px; }
+    .form-actions { flex-direction: column-reverse; }
+    .form-actions .btn { width: 100%; }
+    .float-card { position: static; margin-top: 12px; width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
